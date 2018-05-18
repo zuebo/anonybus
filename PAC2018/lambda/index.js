@@ -27,6 +27,16 @@ const products = {
         "Echo Dot includes a built-in speaker so it can work on its own as a smart alarm clock in the bedroom, an assistant in the kitchen, or anywhere you might want a voice-controlled computer; Amazon Echo is not required to use Echo Dot",
         "Always getting smarter and adding new features, plus thousands of skills like Uber, Domino's, DISH, and more"
     ],
+    'CUSTOMERQAS':[{
+        'QUESTION':"What is the difference between dot and echo",
+        'ANSWER':"The Echo has speakers suitable for listening to music on, while the Echo Dot has a speaker that is only good enough for the commands and alarms. If you want to listen to music with the Dot, you'll want to connect speakers to it"
+    },{
+        'QUESTION':"What is the difference between the first generation and second",
+        'ANSWER': "Changes from first gen I have been able to identify: The new dot is smaller. Same 3.3\" diameter but is 1.3\" tall vs 1.5\" tall Directional mic holes are slashes instead of tiny circles Volume buttons replaced the volume slider around the top 5.7 oz vs 8.8 oz so slightly lighter likely due to smaller height Comes with 90 day warranty vs first gen had 1 year No more power indicator light on the back Both have a 7-microphone array so at least they didn't change that Side material appears to have a glossy finish now No longer includes the 3.5 mm audio cable (4 ft.)"
+    },{
+        'QUESTION':"is echo dot going to finally kill me?",
+        'ANSWER':"It depends on how much power you give Alexa. I highly recommend avoiding smart locks on the basement door."
+    }],
   }, 
   'ECHO_SHOW': {
     'COLORS': ['black'],
@@ -43,6 +53,19 @@ const products = {
         "With eight microphones, beam-forming technology, and noise cancellation, Echo Show hears you from any direction—even while music is playing",
         "Echo Show is always getting smarter and adding new features, plus thousands of skills like Uber, Allrecipes, CNN, and more"
     ],
+    'CUSTOMERQAS':[{
+        'QUESTION':"Can echo show be used to monitor ghost or spirits in a haunted house?",
+        'ANSWER':"Yes, however the ghost has to say Alexa first and might order things like air freshener (The living can smell pretty bad)"
+    },{
+        'QUESTION':"Can echo show replace my bedside alarm clock?",
+        'ANSWER': "The screen can now be turned completely off (say \"Alexa turn off the screen\") so that issue is solved. The original \"do not disturb\" still turns the screen gray with just the time showing. Some people may prefer that but many found it to bright for a bedroom at night. The new command fixes that. You can choose different alarm tones and set the volume of the alarm separate from the regular volume under settings. The alarm can be set quite loud and works for me. Alexa even has \"good morning\" written on the screen as she wakes you. Given the lack of battery backup, I still set a smart phone alarm just in case. But Alexa is my primary alarm and it works great! I have smart lights so I crawl into bed, tell her to turn off the lights and then tell her when I want to get up."
+    },{
+        'QUESTION':"Will echo show stream Amazon Prime videos?",
+        'ANSWER':"Yes, it will stream Amazon Instant Video if you have a Prime membership."
+    },{
+         'QUESTION':"is echo show going to finally kill me?",
+         'ANSWER':"It depends on how much power you give Alexa. I highly recommend avoiding smart locks on the basement door."
+     }],
   },
   'KIND_BAR': {
     'FLAVORS': ['dark chocolate nuts and sea salt'],
@@ -61,6 +84,13 @@ const products = {
         "Finely crafted from the highest quality whole nuts and nature's most delicious spices",
         "KIND is a brand of delicious, natural, healthful foods made from wholesome ingredients you can see & pronounce"
     ],
+    'CUSTOMERQAS':[{
+        'QUESTION':"How much protein in the Peanut Butter and Dark Chocolate?",
+        'ANSWER':"seven gram of protein per serving"
+    },{
+        'QUESTION':"Do they curb appetite?",
+        'ANSWER': "i use this as a dessert, not a meal, and yes they are satisfying"
+    }],
   },
   'SUPER_MARIO_ODYSSEY': {
     'AGE_RESTRICT': 10,
@@ -73,6 +103,13 @@ const products = {
         "Visit astonishing new locales, like skyscraper-packed New Donk City, and run into familiar friends and foes as you try to save Princess Peach from Bowser's clutches and foil his dastardly wedding plans.",
         "A set of three new amiibo figures* - Mario, Princess Peach and Bowser in their wedding outfits - will be released at launch. Some previously released amiibo will also be compatible with this title. Tap supported amiibo to receive gameplay assistance - some amiibo will also unlock costumes for Mario when scanned!"
     ],
+    'CUSTOMERQAS':[{
+        'QUESTION':"Will super mario odyssey work on my gameboy advance sp?",
+        'ANSWER':"Maybe if you push it hard enough... Maybe..."
+    },{
+        'QUESTION':"Is there any perk included in the preorder?",
+        'ANSWER': "It is discounted for Prime members"
+    }],
   }
 };
 
@@ -259,6 +296,7 @@ function handleCanProductIntent(intent, session, callback) {
         const featureValue = getResolutionValueFromSlot(productFeatureSlot);
 
         var productDetailsList = null;
+        var productCustomerQAList = null;
         if (productId && (productId in products)) {
             productDetailsList = get([productId, 'DETAILS'], products);
 
@@ -267,8 +305,16 @@ function handleCanProductIntent(intent, session, callback) {
                 featureDetails = findFeatureInDetails(featureValue, productDetailsList);
             }
 
+            productCustomerQAList = get([productId, 'CUSTOMERQAS'], products);
+            var customerAnswer = null;
+            if (productCustomerQAList.length > 0) {
+                customerAnswer = findFeatureInCustomerQuestions(featureValue, productCustomerQAList);
+            }
+
             if (featureDetails) {
                 speechOutput = featureDetails;
+            } else if (customerAnswer) {
+                speechOutput = customerAnswer;
             } else {
                 speechOutput = "No.";
             }
@@ -526,6 +572,16 @@ function findFeatureInDetails(feature, productDetailsList) {
     }
 }
 
+function findFeatureInCustomerQuestions(feature, productQAs) {
+    for (var i = 0; i< productQAs.length; ++i) {
+        const question = get(['QUESTION'], productQAs[i]);
+        if (isStringInText(feature, question)) {
+            return get(['ANSWER'], productQAs[i]);
+        }
+    }
+    return null;
+
+}
 // Finds a string in larger text (ignores case)
 function isStringInText(string, text) {
     string = string.toLowerCase()
